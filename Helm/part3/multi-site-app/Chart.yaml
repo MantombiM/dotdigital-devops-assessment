@@ -1,0 +1,6 @@
+apiVersion: v2
+name: multi-site-app
+description: A Helm chart for deploying a single site in a multi-site platform
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
