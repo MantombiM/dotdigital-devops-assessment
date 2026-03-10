@@ -1,0 +1,30 @@
+
+{{- include "multi-site-app.validateSite" . -}}
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "multi-site-app.fullname" . }}
+  labels:
+    {{- include "multi-site-app.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ include "multi-site-app.host" . }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "multi-site-app.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+          - path: /healthcheck
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "multi-site-app.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}

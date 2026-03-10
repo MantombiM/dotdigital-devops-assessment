@@ -1,0 +1,16 @@
+{{- include "multi-site-app.validateSite" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "multi-site-app.fullname" . }}
+  labels:
+    {{- include "multi-site-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "multi-site-app.selectorLabels" . | nindent 4 }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: http
+      name: http
