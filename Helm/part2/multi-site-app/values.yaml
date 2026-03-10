@@ -1,0 +1,22 @@
+replicaCount: 3
+
+site: web
+region: region1
+
+image:
+  repository: nginxdemos/hello
+  tag: plain-text
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+
+baseDomain: example.com
+
+nameOverride: ""
+fullnameOverride: ""
