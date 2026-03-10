@@ -1,5 +1,6 @@
-
 {{- include "multi-site-app.validateSite" . -}}
+{{- include "multi-site-app.validateRegion" . -}}
+{{- include "multi-site-app.validateEnvironment" . -}}
 {{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -10,21 +11,23 @@ metadata:
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
-    - host: {{ include "multi-site-app.host" . }}
+    {{- range $host := (include "multi-site-app.hosts" . | fromYamlArray) }}
+    - host: {{ $host }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ include "multi-site-app.fullname" . }}
+                name: {{ include "multi-site-app.fullname" $ }}
                 port:
-                  number: {{ .Values.service.port }}
+                  number: {{ $.Values.service.port }}
           - path: /healthcheck
             pathType: Prefix
             backend:
               service:
-                name: {{ include "multi-site-app.fullname" . }}
+                name: {{ include "multi-site-app.fullname" $ }}
                 port:
-                  number: {{ .Values.service.port }}
+                  number: {{ $.Values.service.port }}
+    {{- end }}
 {{- end }}

@@ -24,13 +24,28 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: {{ .Values.site }}
 {{- end -}}
 
-{{- define "multi-site-app.host" -}}
-{{- printf "%s.%s" .Values.site .Values.baseDomain -}}
-{{- end -}}
-
 {{- define "multi-site-app.validateSite" -}}
 {{- $allowed := list "web" "api" "app" -}}
 {{- if not (has .Values.site $allowed) -}}
 {{- fail "Values.site must be one of: web, api, app" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "multi-site-app.validateRegion" -}}
+{{- $allowed := list "region1" "region2" "region3" -}}
+{{- if not (has .Values.region $allowed) -}}
+{{- fail "Values.region must be one of: region1, region2, region3" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "multi-site-app.hosts" -}}
+{{- $site := .Values.site -}}
+{{- $region := .Values.region -}}
+{{- $baseDomain := .Values.baseDomain -}}
+{{- if eq $region "region1" -}}
+- {{ printf "%s.%s" $site $baseDomain }}
+- {{ printf "%s-%s.%s" $region $site $baseDomain }}
+{{- else -}}
+- {{ printf "%s-%s.%s" $region $site $baseDomain }}
 {{- end -}}
 {{- end -}}

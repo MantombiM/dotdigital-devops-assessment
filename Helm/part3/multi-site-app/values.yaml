@@ -1,6 +1,8 @@
 replicaCount: 3
 
 site: web
+region: region1
+environment: prd
 
 image:
   repository: nginxdemos/hello

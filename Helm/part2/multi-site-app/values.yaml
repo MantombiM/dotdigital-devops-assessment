@@ -1,6 +1,7 @@
 replicaCount: 3
 
 site: web
+region: region1
 
 image:
   repository: nginxdemos/hello
