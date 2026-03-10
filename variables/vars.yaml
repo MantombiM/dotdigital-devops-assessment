@@ -1,0 +1,19 @@
+variables:
+  vmImage: ubuntu-latest
+
+  resourceGroup: rg-lbg-voteapp-test-uks
+  location: uksouth
+
+  acrName: cr-lbg-voteapp-test-uks
+  acrLoginServer: crlbgvoteapptestuks.azurecr.io
+  aksClusterName: aks-lbg-voteapp-test-uks
+  aksNamespace: voteapp
+
+  imageRepository: azure-vote-front
+  dockerfilePath: azure-vote/Dockerfile
+  manifestPath: azure-vote-all-in-one-redis.yaml
+  imagePullSecret: acr-pull-secret
+  aksEnvironment: aks-voteapp-test
+
+  dockerRegistryServiceConnection: sc-lbg-voteapp-acr
+  kubernetesServiceConnection: sc-lbg-voteapp-aks
