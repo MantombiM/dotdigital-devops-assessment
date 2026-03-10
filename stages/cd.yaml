@@ -1,0 +1,43 @@
+stages:
+  - stage: CD
+    displayName: Deploy to AKS
+    dependsOn: CI
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - deployment: DeployToAks
+        displayName: Deploy voting app
+        environment: $(aksEnvironment)
+        pool:
+          vmImage: $(vmImage)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: manifests
+                  displayName: Download manifest artifact
+
+                - task: KubernetesManifest@1
+                  displayName: Create imagePullSecret
+                  inputs:
+                    action: createSecret
+                    connectionType: kubernetesServiceConnection
+                    kubernetesServiceConnection: $(kubernetesServiceConnection)
+                    namespace: $(aksNamespace)
+                    secretType: dockerRegistry
+                    secretName: $(imagePullSecret)
+                    dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+
+                - task: KubernetesManifest@1
+                  displayName: Deploy manifest to AKS
+                  inputs:
+                    action: deploy
+                    connectionType: kubernetesServiceConnection
+                    kubernetesServiceConnection: $(kubernetesServiceConnection)
+                    namespace: $(aksNamespace)
+                    manifests: |
+                      $(Pipeline.Workspace)/manifests/*.yaml
+                    containers: |
+                      $(acrLoginServer)/$(imageRepository):$(Build.BuildId)
+                    imagePullSecrets: |
+                      $(imagePullSecret)

@@ -1,0 +1,13 @@
+name: voteapp-$(Build.BuildId)
+
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  - template: variables/vars.yml
+
+stages:
+  - template: stages/ci.yml
+  - template: stages/cd.yml
