@@ -1,0 +1,29 @@
+steps:
+  - download: current
+    artifact: $(manifestArtifactName)
+    displayName: Download manifest artifact
+
+  - task: KubernetesManifest@1
+    displayName: Create imagePullSecret
+    inputs:
+      action: createSecret
+      connectionType: kubernetesServiceConnection
+      kubernetesServiceConnection: $(kubernetesServiceConnection)
+      namespace: $(aksNamespace)
+      secretType: dockerRegistry
+      secretName: $(imagePullSecret)
+      dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+
+  - task: KubernetesManifest@1
+    displayName: Deploy manifest to AKS
+    inputs:
+      action: deploy
+      connectionType: kubernetesServiceConnection
+      kubernetesServiceConnection: $(kubernetesServiceConnection)
+      namespace: $(aksNamespace)
+      manifests: |
+        $(Pipeline.Workspace)/$(manifestArtifactName)/*.yaml
+      containers: |
+        $(acrLoginServer)/$(imageRepository):$(Build.BuildId)
+      imagePullSecrets: |
+        $(imagePullSecret)

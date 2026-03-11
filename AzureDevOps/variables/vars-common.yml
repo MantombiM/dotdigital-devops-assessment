@@ -1,0 +1,15 @@
+variables:
+  vmImage: ubuntu-latest
+
+  acrName: cr-lbg-voteapp-test-uks
+  acrLoginServer: cr-lbg-voteapp-test-uks.azurecr.io
+  aksClusterName: aks-lbg-voteapp-test-uks
+
+  dockerRegistryServiceConnection: sc-lbg-voteapp-acr
+  kubernetesServiceConnection: sc-lbg-voteapp-aks
+
+  imageRepository: voteapp
+  dockerfilePath: azure-vote/Dockerfile
+  manifestPath: azure-vote-all-in-one-redis.yaml
+  manifestArtifactName: manifests
+  imagePullSecret: acr-pull-secret

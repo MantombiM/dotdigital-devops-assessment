@@ -1,0 +1,79 @@
+name: voteapp-$(Build.BuildId)
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+variables:
+  - template: variables/vars-common.yml
+
+stages:
+  - stage: Build
+    displayName: Build, Scan and Package
+    jobs:
+      - job: BuildJob
+        displayName: Build voting app artifact
+        pool:
+          vmImage: $(vmImage)
+        steps:
+          - template: stages/ci.yml
+
+  - stage: DeployDev
+    displayName: Deploy to Dev
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
+    variables:
+      - template: variables/vars-dev.yml
+    jobs:
+      - deployment: DeployDevJob
+        displayName: Deploy voting app to Dev
+        environment: $(aksEnvironment)
+        pool:
+          vmImage: $(vmImage)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: stages/cd.yml
+
+  - stage: DeployUAT
+    displayName: Deploy to UAT
+    dependsOn: DeployDev
+    condition: succeeded()
+    variables:
+      - template: variables/vars-uat.yml
+    jobs:
+      - deployment: DeployUATJob
+        displayName: Deploy voting app to UAT
+        environment: $(aksEnvironment)
+        pool:
+          vmImage: $(vmImage)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: stages/cd.yml
+
+  - stage: DeployProd
+    displayName: Deploy to Prod
+    dependsOn: DeployUAT
+    condition: succeeded()
+    variables:
+      - template: variables/vars-prd.yml
+    jobs:
+      - deployment: DeployProdJob
+        displayName: Deploy voting app to Prod
+        environment: $(aksEnvironment)
+        pool:
+          vmImage: $(vmImage)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: stages/cd.yml
