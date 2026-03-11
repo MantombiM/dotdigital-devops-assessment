@@ -5,11 +5,16 @@ This solution delivers the four requested files for an Azure DevOps YAML pipelin
 
 The design assumes the pipeline lives in the `azure-voting-app-redis` repository, and that Azure resources such as Azure Container Registry and Azure Kubernetes Service already exist, which the assessment explicitly allows.
 
-## Files
-- `azure-pipelines.yml`
-- `stages/ci.yml`
-- `stages/cd.yml`
-- `variables/vars.yml`
+### File Descriptions
+
+| File | Description |
+|-----|-------------|
+| `azure-pipelines.yml` | Root pipeline definition containing triggers and stage templates |
+| `stages/ci.yml` | Continuous Integration stage that scans the source, builds and pushes the container image, and publishes the Kubernetes manifest |
+| `stages/cd.yml` | Continuous Deployment stage that deploys the manifest to AKS |
+| `variables/vars.yml` | Centralized configuration variables used throughout the pipeline |
+
+---
 
 ## Solution Summary
 The pipeline is split into two stages:
@@ -31,6 +36,28 @@ The pipeline is split into two stages:
    - Overrides the image reference to the image built in CI
    - Uses the `imagePullSecret` when deploying
    - Skips deployment for pull request runs
+
+This separation ensures that the build and deployment responsibilities are clearly defined and independently managed.
+
+---
+
+## Pipeline Trigger
+
+The pipeline is configured to run when changes are pushed to the `main` branch.
+
+---
+
+## Source Code Security Scan
+
+The first step in the CI stage performs a security scan of the repository using **Trivy**.
+
+The scan runs against the source filesystem and checks for:
+
+- Vulnerabilities
+- Infrastructure misconfigurations
+- Exposed secrets
+
+Running the scan before building the container image ensures issues are identified early in the pipeline.
 
 ## Assumptions
 - The source repository structure matches the public Azure sample repository.
@@ -66,27 +93,9 @@ The assessment pseudocode hints that deployment should not run for pull request 
 - CI and CD are separated so deployment consumes a published artifact rather than reconstructing state.
 - Variables are centralized to reduce drift and repeated hardcoded values.
 
-## Important interview talking points
-### Why use templates
-Templates reduce repetition, keep the root pipeline small, and make the pipeline easier to maintain and reuse.
-
-### Why use `Build.BuildId`
-It gives a unique, pipeline-generated image tag that can be traced back to one run.
-
-### Why publish the manifest as an artifact
-It creates a clear handoff between CI and CD. The deployment stage uses the manifest that CI produced rather than relying on the workspace state.
-
-### Why use `KubernetesManifest`
-It is the Azure DevOps task designed for Kubernetes deployments and supports both secret creation and image override during deployment.
-
-### Why not hardcode image tags or credentials
-Hardcoded tags break traceability and hardcoded credentials are a security risk.
-
-## Notes on the manifest rename step
-The requirement explicitly references `CopyFiles_` for the manifest job. `CopyFiles@2` is used to stage the manifest into `$(Build.ArtifactStagingDirectory)`, and a short bash step performs the actual rename. This keeps the flow aligned with the task requirement while acknowledging that `CopyFiles@2` copies files but does not directly rename them.
-
 ## Possible enhancements if there were more time
 - Add a validation stage for YAML linting or manifest validation.
+- If the AKS cluster is already integrated with Azure Container Registry using managed identity or kubelet identity, the pipeline could be simplified by removing the `imagePullSecret` creation step and relying on cluster-level ACR pull permissions instead.
 - Add environment approvals or checks in Azure DevOps.
 - Add a namespace creation step if the namespace is not guaranteed to exist.
 - Add branch policies and PR validation behavior separately from deployment behavior.

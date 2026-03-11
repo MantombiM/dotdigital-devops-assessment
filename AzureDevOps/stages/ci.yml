@@ -1,0 +1,38 @@
+steps:
+  - task: trivy@2
+    displayName: Trivy filesystem scan
+    inputs:
+      type: filesystem
+      target: .
+      scanners: vuln,misconfig,secret
+      severity: HIGH,CRITICAL
+      ignoreUnfixed: true
+      exitCode: '1'
+
+  - task: Docker@2
+    displayName: Build image
+    inputs:
+      command: build
+      containerRegistry: $(dockerRegistryServiceConnection)
+      repository: $(imageRepository)
+      dockerfile: $(dockerfilePath)
+      tags: |
+        $(Build.BuildId)
+
+  - task: Docker@2
+    displayName: Push image to ACR
+    inputs:
+      command: push
+      containerRegistry: $(dockerRegistryServiceConnection)
+      repository: $(imageRepository)
+      tags: |
+        $(Build.BuildId)
+
+  - bash: |
+      manifest_base_name="voteapp_$(Build.BuildId)_$(date +%Y%m%d%H%M%S)"
+      cp "$(Build.SourcesDirectory)/$(manifestPath)" "$(Build.ArtifactStagingDirectory)/${manifest_base_name}.yaml"
+    displayName: Generate and rename manifest
+
+  - publish: $(Build.ArtifactStagingDirectory)
+    displayName: Publish manifest artifact
+    artifact: $(manifestArtifactName)
