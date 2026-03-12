@@ -362,7 +362,6 @@ If there were more time, possible enhancements could include:
 - Add YAML or Kubernetes manifest validation before artifact publication.
 - If the AKS cluster is already integrated with Azure Container Registry using managed identity or kubelet identity, the pipeline could be simplified by removing the imagePullSecret creation step and relying on cluster-level ACR pull permissions instead.
 - Add smoke tests or health checks after each deployment stage.
-- Add namespace creation logic if namespaces are not guaranteed to exist.
 - Add branch-specific behavior for feature or release branches.
 - Separate service connections by environment if Dev, UAT, and Prod use different Azure subscriptions or clusters.
 
